@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QBO OAuth Callback</title>
+<style>
+  body{font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       background:#f6f7f9;color:#14181f;max-width:640px;margin:60px auto;padding:0 20px}
+  h1{font-size:19px}
+  .card{background:#fff;border:1px solid #e3e6eb;border-radius:10px;padding:20px 22px;margin-top:18px}
+  .row{margin-bottom:14px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#6b7481;margin-bottom:4px}
+  .val{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:#f4f6f9;border:1px solid #e3e6eb;
+       border-radius:6px;padding:8px 10px;word-break:break-all;cursor:pointer}
+  .val:hover{background:#eaf1f8}
+  button{margin-top:6px;padding:6px 12px;font-size:12.5px;border:1px solid #1f4e79;background:#1f4e79;
+         color:#fff;border-radius:6px;cursor:pointer}
+  button:hover{background:#17405f}
+  .err{background:#fbeae9;border:1px solid #f0b4b0;color:#5c1712;border-radius:8px;padding:14px 16px}
+  .muted{color:#6b7481;font-size:13px}
+  .copied{color:#137a4d;font-size:12px;margin-left:8px;display:none}
+</style>
+</head>
+<body>
+<h1>QuickBooks Online — Authorization Complete</h1>
+<p class="muted">This page only displays values already in your browser's address bar — nothing is sent anywhere or stored. Copy the code below and paste it back into the terminal that's waiting for it.</p>
+<div id="out" class="card">Reading result…</div>
+
+<script>
+const qs = new URLSearchParams(window.location.search);
+const out = document.getElementById('out');
+
+function copy(text, btn){
+  navigator.clipboard.writeText(text).then(()=>{
+    const note = btn.nextElementSibling;
+    note.style.display = 'inline';
+    setTimeout(()=>note.style.display='none', 1500);
+  });
+}
+window.copy = copy;
+
+if (qs.has('error')) {
+  out.innerHTML = `<div class="err"><b>Authorization failed:</b> ${qs.get('error')}${qs.get('error_description') ? ' — ' + qs.get('error_description') : ''}</div>`;
+} else if (qs.has('code') && qs.has('realmId')) {
+  const code = qs.get('code'), realmId = qs.get('realmId'), state = qs.get('state') || '';
+  out.innerHTML = `
+    <div class="row"><label>Authorization Code</label>
+      <div class="val" onclick="copy('${code}', this.nextElementSibling)">${code}</div>
+      <button onclick="copy('${code}', this.previousElementSibling)">Copy code</button><span class="copied">Copied</span>
+    </div>
+    <div class="row"><label>Realm ID (Company)</label><div class="val">${realmId}</div></div>
+    <div class="row"><label>State</label><div class="val">${state}</div></div>
+    <p class="muted">This code is single-use and expires quickly — paste it into the terminal now.</p>`;
+} else {
+  out.innerHTML = `<div class="err">No authorization code found in the URL. Close this tab and try connecting again.</div>`;
+}
+</script>
+</body>
+</html>
